@@ -1,0 +1,68 @@
+image: maven:3-jdk-11
+
+stages:
+  - build
+  - test
+  - package
+  - document
+  - containerize
+  - release
+  - deploy
+
+variables:
+  RUNNER_IMAGE: registry.gitlab.com/startfleet/gitlab-runner:v1.1
+  QUARK_CLI_OPTS: "-s m2-settings.xml --batch-mode"
+  QUARK_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+before_script:
+  - mkdir ~/.kube/
+  - echo $KUBECONFIG_PROD | base64 -d > ~/.kube/config
+
+#Template
+.deploy-template: &deploy-template
+  stage: deploy
+  image: $RUNNER_IMAGE
+  when: manual
+  only:
+    - master
+    - tags
+  tags:
+    - startfleet
+
+build:
+  image: maven:3-jdk-11
+  stage: build
+  script: "mvn package -B"
+  artifacts:
+    paths:
+      - target/*.jar
+
+test:
+  stage: test
+  script: make test
+
+package:
+  stage: package
+  script: make package
+
+document:
+  stage: document
+  script: make document
+
+containerize:
+  stage: containerize
+  script: make containerize
+
+release:
+  stage: release
+  script: make release
+
+deploy:
+  <<: *deploy-template
+  script:
+    # build and deploy User API
+    - kubectl apply -f Kubernetes/backend/userApi
+
+  only:
+    - master
+  when: manual
