@@ -2,7 +2,6 @@ image: maven:3-jdk-11
 
 stages:
   - build
-  - test
   - package
   - document
   - containerize
@@ -36,10 +35,6 @@ build:
   artifacts:
     paths:
       - target/*.jar
-
-test:
-  stage: test
-  script: make test
 
 package:
   stage: package
