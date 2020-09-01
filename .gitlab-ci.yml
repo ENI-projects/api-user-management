@@ -56,7 +56,7 @@ deploy:
   script:
       - echo $KUBECONFIG | base64 -d | cat $2 > $PROD_KUBECONFIG
       - export KUBECONFIG=$PROD_KUBECONFIG
-      - kubectl set image deployment.v1.apps/armadacar-deployment armadacar=$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG --record -n armadacar
-      - kubectl -n armadacar rollout status deployment/armadacar-deployment
+      - kubectl set image deployment.v1.apps/api-user-deployment user-api=$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG --record -n user-api
+      - kubectl -n user-api rollout status deployment/api-user-deployment
   only:
       - tags
