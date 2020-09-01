@@ -1,30 +1,38 @@
-# api-user-manager project
+# Welcome to api-user-management 👋
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+> API to manage our users from the apps in keycloak
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+### 🏠 [Homepage](https://gitlab.com/startfleet/api-user-management#readme)
 
-## Running the application in dev mode
+The API is made in nodejs using hapi.
 
-You can run your application in dev mode that enables live coding using:
+### Launching the API in local
+> nodejs is required
+
 ```
-./mvnw quarkus:dev
+node serve.js
+npm start
 ```
 
-## Packaging and running the application
+### Endpoints
 
-The application can be packaged using `./mvnw package`.
-It produces the `api-user-manager-1.0.0-SNAPSHOT-runner.jar` file in the `/target` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
+## Author
 
-The application is now runnable using `java -jar target/api-user-manager-1.0.0-SNAPSHOT-runner.jar`.
+👤 **Startfleet**
 
-## Creating a native executable
 
-You can create a native executable using: `./mvnw package -Pnative`.
+## 🤝 Contributing
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: `./mvnw package -Pnative -Dquarkus.native.container-build=true`.
+Contributions, issues and feature requests are welcome!
 
-You can then execute your native executable with: `./target/api-user-manager-1.0.0-SNAPSHOT-runner`
+Feel free to check [issues page](https://gitlab.com/startfleet/api-user-management/issues). You can also take a look at the [contributing guide](ssh://git@gitlab.com/startfleet/api-user-management/blob/master/CONTRIBUTING.md).
 
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/building-native-image.
+## Show your support
+
+Give a ⭐️ if this project helped you!
+
+
+***
+_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_

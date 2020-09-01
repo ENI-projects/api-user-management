@@ -1,0 +1,28 @@
+{
+  "plugins": [
+    [
+      "semantic-release-gitmoji", {
+        "releaseRules": {
+          "major": [":boom:"],
+          "minor": [
+            ":sparkles:", 
+            ":bento:", 
+            ":zap:"
+          ],
+          "patch": [
+            ":bug:",
+            ":ambulance:",
+            ":lock:",
+            ":whale:",
+            ":fire:",
+            ":wrench:",
+            ":truck:",
+            ":recycle:",
+            ":lipstick:"
+          ]
+        }
+      }
+    ],
+    "@semantic-release/gitlab"
+  ]
+}
