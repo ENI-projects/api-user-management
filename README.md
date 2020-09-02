@@ -1,6 +1,4 @@
 # Welcome to api-user-management 👋
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 
 > API to manage our users from the apps in keycloak
 
