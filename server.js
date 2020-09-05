@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '.env.' + process.env.NODE_ENV })
+require('dotenv').config({ path: '/app/config/.env.' + process.env.NODE_ENV })
 const Hapi = require('@hapi/hapi');
 const routes = require('./src/users/routes');
 const authKeycloak = require('hapi-auth-keycloak');
