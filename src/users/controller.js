@@ -1,4 +1,4 @@
-const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse } = require('./functions.js');
+const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt } = require('./functions.js');
 const { connectToAdminCLI, connectToHasura, loadUserInfo } = require('../keycloak/functions.js')
 
 module.exports = {
@@ -28,9 +28,40 @@ module.exports = {
     //returns the formatted list
     return h.response((await listOfParsedUsersInCompany)).code(200);
   },
-  get: (req, h) => {
-    const id = req.params.id;
-    const id_entreprise = getAdminEntrepriseId(req.headers.authorization);
+  get: async (req, h) => {
+    const bearerToken = req.headers.authorization.replace('Bearer ', '');
+    //if the user is a startfleet manager :
+    if (typeof decodeJwt(bearerToken).resource_access["entreprise-management-ui"] !== "undefined") {
+      const queryResult = await connectToAdminCLI().then((kcTokens) => {
+        return loadUserInfo(kcTokens.access_token, req.params.id);
+      });
+      if (typeof queryResult.code !== 'undefined'){
+        return h.response(queryResult.message).code(queryResult.code);
+      } else {
+        return h.response(parseUserResponse(queryResult)).code(200);
+      }
+    } else {
+    //else : the user is a company manager
+      const usersInCompany = await getAdminEntrepriseId(bearerToken).then((res) => {
+        return res.data.armadacar_utilisateurs[0].id_entreprise;
+      }).then((id_entreprise) => {
+        return connectToHasura().then((hasuraTokens) => {
+          return getUsersIdInCompany(hasuraTokens.access_token, id_entreprise)
+        })
+      })
+      if (typeof usersInCompany !== 'undefined'){
+        if (usersInCompany.filter(user => user.id == req.params.id).length > 0){
+          const userInfos = await connectToAdminCLI().then((kcTokens) => {
+            return loadUserInfo(kcTokens.access_token, req.params.id);
+          });
+          return h.response(parseUserResponse(userInfos)).code(200);
+        } else {
+          return h.response("Not Found").code(404);
+        }
+      } else {
+        return h.response(usersInCompany.message).code(usersInCompany.code)
+      }
+    }
   },
   update: (req, h) => {
     const id = req.params.id;

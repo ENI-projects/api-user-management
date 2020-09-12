@@ -2,10 +2,22 @@ const UserController =  require('./controller');
 
 module.exports = [
   {
-      //get user params for for admin entreprise
-      method: 'GET',
-      path: '/user/{id}',
-      handler: UserController.get
+    //get user params for for admin entreprise
+    method: 'GET',
+    path: '/user/{id}',
+    handler: UserController.get,
+    config: {
+      description: "protected endpoint",
+      cors: {
+        origin: ["*"]
+      },
+      auth: {
+        strategies: ["keycloak-jwt"],
+        access: {
+          scope: ["armadacar-frontend-app:adminentreprise", "entreprise-management-ui:entreprise-management-admin"]
+        }
+      }
+    }
   },
   {
     //get list users params
@@ -14,6 +26,9 @@ module.exports = [
     handler: UserController.list,
     config: {
       description: "protected endpoint",
+      cors: {
+        origin: ["*"]
+      },
       auth: {
         strategies: ["keycloak-jwt"],
         access: {

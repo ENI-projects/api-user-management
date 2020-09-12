@@ -9,7 +9,11 @@ async function connectToHasura(){
     process.env.API_USER_PASSWORD
   );
   const res = (await connectToKeycloak(KEYCLOAK_CONNECT_URL, data));
-  return await parseResponse(res);
+  try {
+    return await parseResponse(res);
+  } catch {
+    return parseError(error);
+  }
 }
 
 async function connectToAdminCLI() {
@@ -20,7 +24,11 @@ async function connectToAdminCLI() {
     process.env.API_USER_PASSWORD
   );
   const res = (await connectToKeycloak(KEYCLOAK_CONNECT_URL, data));
-  return await parseResponse(res);
+  try {
+    return await parseResponse(res);
+  } catch(error) {
+    return parseError(error);
+  }
 }
 
 async function loadUserInfo(jwt, id) {
@@ -33,7 +41,11 @@ async function loadUserInfo(jwt, id) {
       }
     }
   )
-  return await parseResponse(response);
+  try {
+    return await parseResponse(response);
+  } catch (error) {
+    return parseError(error);
+  }
 }
 
 function prepareConnectRequestBodyData(client_id, grant_type, username, password){
@@ -58,12 +70,27 @@ async function connectToKeycloak(kcURL, bodyData) {
 
 async function parseResponse(response) {
   if (!response.ok) {
-    throw new Error(response.statusText);
+    throw new Error(response.status);
   }
   try {
     return await response.json();
   } catch (err) {
     console.error("Error parsing JSON", err);
+  }
+}
+
+function parseError(error) {
+  switch(error.message){
+    case "404":
+      return {
+        code: 404, 
+        message: "Error while getting user infos : not found"
+      }
+    default:
+      return {
+        code: 500,
+        message: "Something unexpected happened"
+    }
   }
 }
 
