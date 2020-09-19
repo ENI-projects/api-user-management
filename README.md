@@ -23,13 +23,19 @@ There are 5 endpoints that are used to manage the users between the database of 
 ```
 GET /users
 ```
-__Rights :__ This endpoint is only available to connected users having the "adminentreprise" role into the armadacar app and will only retrive users that are in the company of the caller.
+__Rights :__ This endpoint is only available to connected users having the "adminentreprise" role into the armadacar app and will only retrive users that are in the company of the caller. It is also accessible by users in entreprise-management-admin role with nos restrictions.
 
 ### Getting the infos about 1 user
 ```
 GET /user/{id}
 ```
 __Rights :__ This endpoint is only available to connected users having the "adminentreprise" role into the armadacar app and will only retrive users that are in the company of the caller, otherwise a HTTP 404 is returned.
+
+### Delete a user
+```
+DELETE /user/{id}
+```
+__Rights :__ This endpoint is only available to connected users having the "adminentreprise" role into the armadacar app and will only delete users that are in the company of the caller. It is also accessible by users in entreprise-management-admin role with nos restrictions.
 
 ## Author
 
