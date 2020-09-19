@@ -1,5 +1,5 @@
-const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt } = require('./functions.js');
-const { connectToAdminCLI, connectToHasura, loadUserInfo } = require('../keycloak/functions.js')
+const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt, deleteUserInHasura } = require('./functions.js');
+const { connectToAdminCLI, connectToHasura, loadUserInfo, deleteUser } = require('../keycloak/functions.js')
 
 module.exports = {
   list: async (req, h) => {
@@ -82,9 +82,54 @@ module.exports = {
     };
 
   },
-  remove: (req, h) => {
-    const id = req.params.id;
-    const id_entreprise = getAdminEntrepriseId(req.headers.authorization);
-
+  remove: async (req, h) => {
+    const bearerToken = req.headers.authorization.replace('Bearer ', '');
+    //if the user is a startfleet manager :
+    if (typeof decodeJwt(bearerToken).resource_access["entreprise-management-ui"] !== "undefined") {
+      const queryResult = await connectToAdminCLI().then((kcTokens) => {
+        return deleteUser(kcTokens.access_token, req.params.id);
+      });
+      if (typeof queryResult.code !== 'undefined'){
+        return h.response(queryResult.message).code(queryResult.code);
+      } else {
+        //if okay, deletes in hasura
+        const isUserDeleted = await connectToHasura().then((hasuraTokens) => {
+          return deleteUserInHasura(hasuraTokens.access_token, req.params.id);
+        });
+        return isUserDeleted.affected_rows ? h.response().code(204): h.response(isUserDeleted.msg).code(500);
+      }
+    } else {
+      //else : the user is a company manager
+      const usersInCompany = await getAdminEntrepriseId(bearerToken).then((res) => {
+        return res.data.armadacar_utilisateurs[0].id_entreprise;
+      }).then((id_entreprise) => {
+        return connectToHasura().then((hasuraTokens) => {
+          return getUsersIdInCompany(hasuraTokens.access_token, id_entreprise)
+        })
+      });
+      if (typeof usersInCompany !== 'undefined'){
+        // check if the user is in the company of the caller
+        if (usersInCompany.filter(user => user.id == req.params.id).length > 0){
+          // delete the user in keycloak
+          const queryResult = await connectToAdminCLI().then((kcTokens) => {
+            return deleteUser(kcTokens.access_token, req.params.id);
+          });
+          //check the result of the delete function
+          if (typeof queryResult.code !== 'undefined'){
+            return h.response(queryResult.message).code(queryResult.code);
+          } else {
+            //if okay, deletes in hasura
+            const isUserDeleted = await connectToHasura().then((hasuraTokens) => {
+              return deleteUserInHasura(hasuraTokens.access_token, req.params.id);
+            });
+            return isUserDeleted.affected_rows ? h.response().code(204): h.response(isUserDeleted.msg).code(500);
+          }
+        } else {
+          return h.response("Not Found").code(404);
+        }
+      } else {
+        return h.response(usersInCompany.message).code(usersInCompany.code)
+      }
+    }
   }
 }

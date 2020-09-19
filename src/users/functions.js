@@ -1,5 +1,6 @@
 const jwtDecode = require('jwt-decode');
 const { fetchAsync, fetcher } = require("../graphql/fetcher");
+const mutations = require('../graphql/mutations');
 const queries = require("../graphql/queries");
 
 function getAdminEntrepriseId(jwt) {
@@ -18,7 +19,17 @@ async function getUsersIdInCompany(jwt, id) {
     queries.getUsersByIdEntreprise, 
     { id }
   ));
-  return res.data ? res.data.armadacar_utilisateurs:  {"msg": "erreur"} ;
+  return res.data ? res.data.armadacar_utilisateurs:  {"msg": "Something went wrong while deleting the user from the database"} ;
+}
+
+async function deleteUserInHasura(jwt, id){
+  const res = await fetchAsync(
+    jwt,
+    fetcher,
+    mutations.deleteUserById,
+    { id }
+  );
+  return res.data ? res.data.delete_armadacar_utilisateurs: {"msg": "erreur"};
 }
 
 function parseUserResponse(user) {
@@ -57,5 +68,6 @@ module.exports = {
   getUsersIdInCompany,
   decodeJwt,
   verifyAdminPrivilege,
-  parseUserResponse
+  parseUserResponse,
+  deleteUserInHasura
 };

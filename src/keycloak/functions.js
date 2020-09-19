@@ -48,6 +48,22 @@ async function loadUserInfo(jwt, id) {
   }
 }
 
+async function deleteUser(jwt, id) {
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users/${id}`;
+  const response = await fetch(
+      url, {
+      method: "DELETE",
+      headers: {
+        "authorization": `Bearer ${jwt}`
+      }
+    }
+  )
+  if (response.status !== 204){
+    return parseError({ message: response.status });
+  }
+  return response.status;
+}
+
 function prepareConnectRequestBodyData(client_id, grant_type, username, password){
   const data = new URLSearchParams();
   data.append("client_id", client_id);
@@ -81,6 +97,12 @@ async function parseResponse(response) {
 
 function parseError(error) {
   switch(error.message){
+    case "403": {
+      return {
+        code: 403,
+        message: "Forbidden"
+      }
+    }
     case "404":
       return {
         code: 404, 
@@ -97,5 +119,6 @@ function parseError(error) {
 module.exports = {
     connectToAdminCLI,
     loadUserInfo,
-    connectToHasura
+    connectToHasura,
+    deleteUser
 }

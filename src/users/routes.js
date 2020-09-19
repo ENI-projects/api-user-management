@@ -67,6 +67,18 @@ module.exports = [
     //delete user
     method: 'DELETE',
     path: '/user/{id}',
-    handler: UserController.remove
+    handler: UserController.remove,
+    config: {
+      description: "protected endpoint",
+      cors: {
+        origin: ["*"]
+      },
+      auth: {
+        strategies: ["keycloak-jwt"],
+        access: {
+          scope: ["armadacar-frontend-app:adminentreprise", "entreprise-management-ui:entreprise-management-admin"]
+        }
+      }
+    }
   }
 ];
