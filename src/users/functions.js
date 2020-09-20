@@ -19,7 +19,7 @@ async function getUsersIdInCompany(jwt, id) {
     queries.getUsersByIdEntreprise, 
     { id }
   ));
-  return res.data ? res.data.armadacar_utilisateurs:  {"msg": "Something went wrong while deleting the user from the database"} ;
+  return res.data ? res.data.armadacar_utilisateurs:  {"msg": "Something went wrong while getting the user from the database"} ;
 }
 
 async function deleteUserInHasura(jwt, id){
@@ -29,7 +29,7 @@ async function deleteUserInHasura(jwt, id){
     mutations.deleteUserById,
     { id }
   );
-  return res.data ? res.data.delete_armadacar_utilisateurs: {"msg": "erreur"};
+  return res.data ? res.data.delete_armadacar_utilisateurs: {"msg": "Something went wrong while deleting the user from the database"};
 }
 
 function parseUserResponse(user) {
