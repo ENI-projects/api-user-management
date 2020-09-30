@@ -67,21 +67,34 @@ module.exports = {
     const id = req.params.id;
     const id_entreprise = getAdminEntrepriseId(req.headers.authorization);
   },
-  create: (req, h) => {
-    const id_entreprise = getAdminEntrepriseId(req.headers.authorization);
-    
-    const userData = {
-      email: req.payload.email,
-      first_name: req.payload.first_name,
-      last_name: req.payload.last_name,
-      id_entreprise: id_entreprise,
-      address: req.payload.adress,
-      ville: req.payload.ville,
-      code_postal: req.payload.code_postal,
-      phone: req.payload.phone,
-    };
 
+  create: (req, h) => {
+    const someResult = getAdminEntrepriseId(req.headers.authorization).then((res) => {
+      return res.data.armadacar_utilisateurs[0].id_entreprise;
+    }).then((id_entreprise) => {
+      //create user in admin's company
+      return connectToHasura().then((hasuraTokens) => {
+        
+      }).then((usersId) => {
+        //create user in keycloak
+        return connectToAdminCLI().then((kcTokens) => {
+          //here create function 'create keycloak user'
+        });
+    })
+    })
+    //   const userData = {
+    //     email: req.payload.email,
+    //     first_name: req.payload.first_name,
+    //     last_name: req.payload.last_name,
+    //     id_entreprise: id_entreprise,
+    //     address: req.payload.adress,
+    //     ville: req.payload.ville,
+    //     code_postal: req.payload.code_postal,
+    //     phone: req.payload.phone,
+    //   }
+    // })
   },
+
   remove: async (req, h) => {
     const bearerToken = req.headers.authorization.replace('Bearer ', '');
     //if the user is a startfleet manager :
