@@ -48,6 +48,34 @@ async function loadUserInfo(jwt, id) {
   }
 }
 
+async function modifyUserInfos(jwt, id, infos) {
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users/${id}`;
+  const response= await fetch(
+    url, {
+      method: "PUT",
+      headers: {
+        "authorization": `Bearer ${jwt}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "firstName": infos.first_name,
+        "lastName": infos.last_name,
+        "email": infos.email,
+        "attributes": {
+          "ville": [infos.ville],
+          "address": [infos.address],
+          "code_postal": [infos.code_postal],
+          "phone": [infos.phone]
+        }
+      })
+    }
+  )
+  if (response.status !== 204){
+    return parseError({ message: response.status });
+  }
+  return response.status;
+}
+
 async function deleteUser(jwt, id) {
   const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users/${id}`;
   const response = await fetch(
@@ -120,5 +148,6 @@ module.exports = {
     connectToAdminCLI,
     loadUserInfo,
     connectToHasura,
-    deleteUser
+    deleteUser,
+    modifyUserInfos
 }

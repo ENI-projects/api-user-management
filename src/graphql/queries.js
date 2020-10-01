@@ -10,7 +10,15 @@ const getUsersByIdEntreprise = `query getUsersByIdEntreprise($id: Int!) {
   }
 }`
 
+const getUserById = `query getUserIdEntrepriseById($id: String!) {
+  armadacar_utilisateurs(where: {id: {_eq: $id}}) {
+    id
+    id_entreprise
+  }
+}`
+
 module.exports = {
   getIdEntreprise,
-  getUsersByIdEntreprise
+  getUsersByIdEntreprise,
+  getUserById
 }

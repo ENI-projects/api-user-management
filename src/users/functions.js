@@ -12,6 +12,16 @@ function getAdminEntrepriseId(jwt) {
   );
 };
 
+async function getUserInHasuraById(jwt, id) {
+  const res = (await fetchAsync(
+    jwt,
+    fetcher,
+    queries.getUserById,
+    { id }
+  ))
+  return res.data ? res.data.armadacar_utilisateurs[0]: {"msg" : "Something went wrong while getting the users from the database"}
+}
+
 async function getUsersIdInCompany(jwt, id) {
   const res = (await fetchAsync(
     jwt,
@@ -19,7 +29,7 @@ async function getUsersIdInCompany(jwt, id) {
     queries.getUsersByIdEntreprise, 
     { id }
   ));
-  return res.data ? res.data.armadacar_utilisateurs:  {"msg": "Something went wrong while getting the user from the database"} ;
+  return res.data ? res.data.armadacar_utilisateurs:  {"msg": "Something went wrong while getting the users from the database"} ;
 }
 
 async function deleteUserInHasura(jwt, id){
@@ -69,5 +79,6 @@ module.exports = {
   decodeJwt,
   verifyAdminPrivilege,
   parseUserResponse,
-  deleteUserInHasura
+  deleteUserInHasura,
+  getUserInHasuraById
 };

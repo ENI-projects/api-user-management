@@ -15,7 +15,16 @@ const init = async () => {
   const server = Hapi.server({
     port: 3000,
     host: '0.0.0.0',
+    routes: {
+      validate: {
+        failAction: (request, h, err) => {
+          throw err;
+        }
+      }
+    }
   });
+  
+  server.validator(require('@hapi/joi'))
 
   const authPluginOptions = {}
   const authStrategyOptions = {

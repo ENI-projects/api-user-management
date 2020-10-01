@@ -37,6 +37,26 @@ DELETE /user/{id}
 ```
 __Rights :__ This endpoint is only available to connected users having the "adminentreprise" role into the armadacar app and will only delete users that are in the company of the caller. It is also accessible by users in entreprise-management-admin role with nos restrictions.
 
+### Update a user
+```
+PUT /user/{id}
+```
+__Rights :__ This endpoint is only available to connected users having the "adminentreprise" role into the armadacar app and will only delete users that are in the company of the caller. It is also accessible by users in entreprise-management-admin role with no restriction on any user, but it will always check that the user to modify is never moved from a company to a other.
+
+__Payload :__ Payload should be this format :
+```json
+{
+  "email": "$email",
+  "first_name": "$last_name",
+  "last_name": "$last_name",
+  "id_entreprise": "$id_entreprise",
+  "adress": "$adress",
+  "ville": "$ville",
+  "code_postal": "$code_postal",
+  "phone": "$phone"
+}
+```
+
 ## Author
 
 👤 **Startfleet**

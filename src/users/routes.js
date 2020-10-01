@@ -1,4 +1,5 @@
 const UserController =  require('./controller');
+const validators = require('./validators');
 
 module.exports = [
   {
@@ -38,10 +39,38 @@ module.exports = [
     }
   },
   {
+    /*
+      Recieve a post request with :
+      header : authorization = value of the JWT of the user calling the API
+      payload : the user to insert with following format :
+      {
+        email: $email
+        first_name: $last_name
+        last_name: $last_name
+        id_entreprise: $id_entreprise
+        adress: $adress
+        ville: $ville
+        code_postal: $code_postal
+        phone: $phone
+      }
+    */
     //update users
     method: 'PUT',
     path: '/user/{id}',
-    handler: UserController.update
+    handler: UserController.update,
+    config: {
+      description: "protected endpoint",
+      cors: {
+        origin: ["*"]
+      },
+      auth: {
+        strategies: ["keycloak-jwt"],
+        access: {
+          scope: ["armadacar-frontend-app:adminentreprise", "entreprise-management-ui:entreprise-management-admin"]
+        }
+      },
+      validate: validators.PutUserPayload
+    }
   },
   {
     /*
@@ -50,10 +79,10 @@ module.exports = [
       payload : the user to insert with following format :
       {
         email: $email
-        name: $value
-        surename: $surename
+        last_name: $value
+        first_name: $value
         id_entreprise: $id_entreprise
-        adresse: $adresse
+        address: $adress
         ville: $ville
         code_postal: $code_postal
         phone: $phone

@@ -1,5 +1,5 @@
-const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt, deleteUserInHasura } = require('./functions.js');
-const { connectToAdminCLI, connectToHasura, loadUserInfo, deleteUser } = require('../keycloak/functions.js')
+const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt, deleteUserInHasura, getUserInHasuraById } = require('./functions.js');
+const { connectToAdminCLI, connectToHasura, loadUserInfo, deleteUser, modifyUserInfos } = require('../keycloak/functions.js')
 
 module.exports = {
   list: async (req, h) => {
@@ -63,9 +63,41 @@ module.exports = {
       }
     }
   },
-  update: (req, h) => {
-    const id = req.params.id;
-    const id_entreprise = getAdminEntrepriseId(req.headers.authorization);
+  update: async (req, h) => {
+    const bearerToken = req.headers.authorization.replace('Bearer ', '');
+    //gets the id of the company of the caller if the caller is a armadacar user
+    let continueComputing = false;
+    if (typeof decodeJwt(bearerToken).resource_access["entreprise-management-ui"] == "undefined") {
+      //and verify if the caller is modying a user in his company
+      const usersInCompany = await getAdminEntrepriseId(bearerToken).then((res) => {
+        return res.data.armadacar_utilisateurs[0].id_entreprise;
+      }).then((id_entreprise) => {
+        return connectToHasura().then((hasuraTokens) => {
+          return getUsersIdInCompany(hasuraTokens.access_token, id_entreprise)
+        })
+      });
+      if (usersInCompany.filter(user => user.id == req.params.id).length > 0){
+        continueComputing = true;
+      }
+    } else {
+      //verify if the user to modify stays in the same company
+      const user = await getUserInHasuraById(bearerToken, req.params.id).then((res) => {
+        return res;
+      });
+      if (user.id_entreprise == req.payload.id_entreprise){
+        continueComputing = true;
+      }
+    }
+    if (continueComputing){
+      //modify the user's informations in keycloak
+      const queryResult = await connectToAdminCLI().then((kcTokens) => {
+        return modifyUserInfos(kcTokens.access_token, req.params.id, req.payload);
+      });
+      return queryResult.message? h.response(queryResult.message).code(queryResult.code) : h.response().code(204);
+    } else {
+      return h.response("You don't have the rights to modify this user").code(403);
+    }
+    //verify the end
   },
   create: (req, h) => {
     const id_entreprise = getAdminEntrepriseId(req.headers.authorization);
