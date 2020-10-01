@@ -64,6 +64,41 @@ async function deleteUser(jwt, id) {
   return response.status;
 }
 
+async function createUser(jwt, userData) {
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users`;
+  const response = await fetch(
+    url, {
+      method: "POST",
+      headers: {
+        "authorization": `Bearer ${jwt}`
+      },
+      body: userData
+    }
+  )
+  if (response.status !== 204){
+    return parseError({ message: response.status });
+  }  
+  return response.status;
+}
+
+//Permet de récupérer les utilisateurs ayant pour email l'email passé en paramètre
+async function searchByEmail(jwt, email){
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users?email=${email}`;
+  const response = await fetch(
+    url, {
+      method: "GET",
+      headers: {
+        "authorization": `Bearer ${jwt}`
+      }
+    }
+  )
+  try {
+    return await parseResponse(response);
+  } catch (error) {
+    return parseError(error);
+  }
+}
+
 function prepareConnectRequestBodyData(client_id, grant_type, username, password){
   const data = new URLSearchParams();
   data.append("client_id", client_id);
@@ -120,5 +155,7 @@ module.exports = {
     connectToAdminCLI,
     loadUserInfo,
     connectToHasura,
-    deleteUser
+    deleteUser,
+    createUser,
+    searchByEmail
 }

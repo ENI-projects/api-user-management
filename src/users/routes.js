@@ -44,24 +44,21 @@ module.exports = [
     handler: UserController.update
   },
   {
-    /*
-      Recieve a post request with :
-      header : authorization = value of the JWT of the user calling the API
-      payload : the user to insert with following format :
-      {
-        email: $email
-        name: $value
-        surename: $surename
-        id_entreprise: $id_entreprise
-        adresse: $adresse
-        ville: $ville
-        code_postal: $code_postal
-        phone: $phone
-      }
-    */
     method: 'POST',
-    path: '/user',
-    handler: UserController.create
+    path: '/user/create',
+    handler: UserController.create,
+    config: {
+      description: "protected endpoint",
+      cors: {
+        origin: ["*"]
+      },
+      auth: {
+        strategies: ["keycloak-jwt"],
+        access: {
+          scope: ["armadacar-frontend-app:adminentreprise", "entreprise-management-ui:entreprise-management-admin"]
+        }
+      }
+    }
   },
   {
     //delete user

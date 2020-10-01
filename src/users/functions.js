@@ -32,6 +32,19 @@ async function deleteUserInHasura(jwt, id){
   return res.data ? res.data.delete_armadacar_utilisateurs: {"msg": "Something went wrong while deleting the user from the database"};
 }
 
+async function createUserInHasura(jwt, id, idEntreprise){
+  const res = await fetchAsync(
+    jwt,
+    fetcher, 
+    mutations.createUserInHasura,
+    {
+      id,
+      idEntreprise
+    }
+  );
+  return res.data ? res.data.insert_armadacar_utilisateurs: {"msg": "Something went wrong while create the user from the database"};
+}
+
 function parseUserResponse(user) {
   let parsedUser = {
     email: user.email ? user.email : "",
@@ -69,5 +82,6 @@ module.exports = {
   decodeJwt,
   verifyAdminPrivilege,
   parseUserResponse,
-  deleteUserInHasura
+  deleteUserInHasura,
+  createUserInHasura
 };
