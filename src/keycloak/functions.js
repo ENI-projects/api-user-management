@@ -64,7 +64,7 @@ async function deleteUser(jwt, id) {
   return response.status;
 }
 
-async function createUser(jwt, userData) {
+async function createUser(jwt, infos) {
   const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users`;  
   const response = await fetch(
     url, {
@@ -73,10 +73,9 @@ async function createUser(jwt, userData) {
         "authorization": `Bearer ${jwt}`,
         "Content-Type" : "application/json"
       },
-      body: userData
-    }
+      body: JSON.stringify(infos)
+    }    
   )
-  console.log(response.status)
   if (response.status !== 204){
     return parseError({ message: response.status });
   }  
@@ -93,7 +92,7 @@ async function searchByEmail(jwt, email){
         "authorization": `Bearer ${jwt}`
       }
     }
-  )
+  )  
   try {
     return await parseResponse(response);
   } catch (error) {

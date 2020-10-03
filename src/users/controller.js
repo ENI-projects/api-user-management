@@ -73,37 +73,48 @@ module.exports = {
       return res.data.armadacar_utilisateurs[0].id_entreprise;
     })
     const userData = {
-      username: req.payload.email,
-      email: req.payload.email,
-      firstName: req.payload.first_name,
-      lastName: req.payload.last_name,
-      attributes: [
-        { address : req.payload.address },
-        { ville : req.payload.ville },
-        { code_postal : req.payload.code_postal },
-        { phone : req.payload.phone },  
-      ],
-      clientRoles: [
-        {"armadacar-frontend-app":"user"},
-        {"hasura-keycloak-connector": "user"}          
+      "username" : req.payload.email,
+      "email" : req.payload.email,
+      "firstName" : req.payload.first_name,
+      "lastName" : req.payload.last_name,
+      "attributes" : {      
+         "address" : [req.payload.address] ,
+         "ville" : [req.payload.ville] ,
+         "code_postal" : [req.payload.code_postal] ,
+         "phone" : [req.payload.phone] ,
+      },
+      "enabled" : true, 
+      "clientRoles": {
+        "armadacar-frontend-app": ["user"],
+        "hasura-keycloak-connector": ["user"]
+      },
+      "credentials" : [
+        {"temporary" : true},
+        {"value" : "temp"}
       ]
-    };    
+    };
     // create the user in keycloak
     const queryResult = connectToAdminCLI().then((kcTokens) => {
       return createUser(kcTokens.access_token, userData);
-    });
-    //check the result of the delete function
+    });    
+    console.log(typeof queryResult.code)
     if (typeof queryResult.code !== 'undefined'){
       return h.response(queryResult.message).code(queryResult.code);
     } else {
       //if okay, get id User In Keycloak before of to create in hasura
-      const idUser = connectToAdminCLI().then((kcTokens) => {
-        return searchByEmail(kcTokens.access_token, req.payload.email)
-      }).then((promiseUser) => {
-        return Promise.all(promiseUser).then((userFound) => {
-          return userFound.id
-        });
-      });
+      const idUser = connectToAdminCLI().then((kcTokens) => {        
+         searchByEmail(kcTokens.access_token, req.payload.email).then((promiseUser) => {
+            console.log(promiseUser[0].id)
+            return promiseUser[0].id
+      })
+      // }).then((promiseUser) => {
+      //   console.log(promiseUser)
+      //   // return Promise.all(promiseUser).then((userFound) => {
+      //   //   return userFound.id          
+      //   // });
+      });      
+      console.log("ID user (dessous): ")
+      console.log(idUser)
       //if okay, create in hasura
       // const isUserCreated = connectToHasura().then((hasuraTokens) => {
       //   return createUserInHasura(hasuraTokens.access_token, idUser, id_entreprise );
