@@ -48,9 +48,79 @@ async function loadUserInfo(jwt, id) {
   }
 }
 
+async function createUserInKc(jwt, infos, responsable) {
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users`;  
+  let armadacar_role = "user"
+  if (responsable == true){
+    armadacar_role = "adminentreprise"
+  }
+  const response = await fetch(
+    url, {
+      method: "POST",
+      headers: {
+        "authorization": `Bearer ${jwt}`,
+        "Content-Type" : "application/json"
+      },
+      body: JSON.stringify({
+        "username": infos.email,
+        "email": infos.email,
+        "firstName": infos.first_name,
+        "lastName": infos.last_name,
+        "attributes": {
+          "address": [infos.address],
+          "ville": [infos.ville],
+          "code_postal": [infos.code_postal],
+          "phone": [infos.phone]
+        },
+        "enabled" : true,
+        "credentials" : [
+          { "temporary": true },
+          { "value": "password.to.change1234" }
+        ]
+      })
+    }
+  )
+  if (response.status !== 201){
+    return parseError({ message: response.status });
+  }
+  return response.status;
+}
+
+async function addUserArmadacarRole(jwt, id, responsable){
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users/${id}/role-mappings/clients/${process.env.ARMADACAR_CONTAINER_ID}`;
+  let roleId = process.env.ARMADACAR_USER_ROLE_ID;
+  let roleName = "user"; 
+  if (responsable == true){
+    roleId = process.env.ARMADACAR_ADMIN_ROLE_ID;
+    roleName = "adminentreprise"
+  }
+  const response = await fetch(
+    url, {
+      method: "POST",
+      headers: {
+        "authorization": `Bearer ${jwt}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify([
+        {
+          "id": roleId,
+          "name": roleName,
+          "composite": false,
+          "clientRole": true,
+          "containerId": `${process.env.ARMADACAR_CONTAINER_ID}` 
+        }
+      ])
+    }
+  );
+  if (response.status !== 204){
+    return parseError({ message: response.status });
+  }
+  return response.status;
+}
+
 async function modifyUserInfos(jwt, id, infos) {
   const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users/${id}`;
-  const response= await fetch(
+  const response = await fetch(
     url, {
       method: "PUT",
       headers: {
@@ -91,6 +161,24 @@ async function deleteUser(jwt, id) {
   }
   return response.status;
 }
+
+async function searchByEmail(jwt, email){
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users?email=${email}`;
+  const response = await fetch(
+    url, {
+      method: "GET",
+      headers: {
+        "authorization": `Bearer ${jwt}`
+      }
+    }
+  )  
+  try {
+    return await parseResponse(response);
+  } catch (error) {
+    return parseError(error);
+  }
+}
+
 
 function prepareConnectRequestBodyData(client_id, grant_type, username, password){
   const data = new URLSearchParams();
@@ -149,5 +237,8 @@ module.exports = {
     loadUserInfo,
     connectToHasura,
     deleteUser,
-    modifyUserInfos
+    modifyUserInfos,
+    searchByEmail,
+    createUserInKc,
+    addUserArmadacarRole
 }

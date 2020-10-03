@@ -1,5 +1,5 @@
-const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt, deleteUserInHasura, getUserInHasuraById } = require('./functions.js');
-const { connectToAdminCLI, connectToHasura, loadUserInfo, deleteUser, modifyUserInfos } = require('../keycloak/functions.js')
+const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt, deleteUserInHasura, getUserInHasuraById, insertUserInHasura } = require('./functions.js');
+const { connectToAdminCLI, connectToHasura, loadUserInfo, deleteUser, modifyUserInfos, searchByEmail, createUserInKc, addUserArmadacarRole } = require('../keycloak/functions.js')
 
 module.exports = {
   list: async (req, h) => {
@@ -99,20 +99,55 @@ module.exports = {
     }
     //verify the end
   },
-  create: (req, h) => {
-    const id_entreprise = getAdminEntrepriseId(req.headers.authorization);
-    
-    const userData = {
-      email: req.payload.email,
-      first_name: req.payload.first_name,
-      last_name: req.payload.last_name,
-      id_entreprise: id_entreprise,
-      address: req.payload.adress,
-      ville: req.payload.ville,
-      code_postal: req.payload.code_postal,
-      phone: req.payload.phone,
-    };
-
+  create: async (req, h) => {
+    const bearerToken = req.headers.authorization.replace('Bearer ', '');
+    let addResponsable = false;
+    //gets the id of the company of the caller if the caller is a armadacar user
+    if (typeof decodeJwt(bearerToken).resource_access["entreprise-management-ui"] == "undefined") {
+      //checks if the user to add is in the company of the caller
+      const callerCompanyId = await getAdminEntrepriseId(bearerToken).then((res) => {
+        return res.data.armadacar_utilisateurs[0].id_entreprise;
+      });
+      if (callerCompanyId != req.payload.id_entreprise){
+        return h.response("Forbidden").code(403);
+      }
+    } else {
+      // if the user is a startfleet manager, the user to add is a armadacar company manager
+      addResponsable = true;
+    }
+    //checks if the email is not used by another user
+    const usersWithEmailLength = await connectToAdminCLI().then(kcTokens => {
+      return searchByEmail(kcTokens.access_token, req.payload.email).then(users => { 
+        return users.length;
+      });
+    })
+    if (usersWithEmailLength != 0) {
+      return h.response().code(409);
+    }
+    //insert the user if it passed the checks
+    const queryUserInsertionResult = await connectToAdminCLI().then(async kcTokens => {
+      //insert the user
+      const createResult = await createUserInKc(kcTokens.access_token, req.payload, addResponsable);
+      if (typeof createResult.message !== "undefined"){
+        return { "code": createResult.code, "message": createResult.message };
+      }
+      //get the id of the user and add its role in armadacar
+      const insertedUserId = await searchByEmail(kcTokens.access_token, req.payload.email).then(users => { return users[0].id });
+      const addUserRoleResult = await addUserArmadacarRole(kcTokens.access_token, insertedUserId, addResponsable);
+      if (typeof addUserRoleResult.message !== "undefined") {
+        return { "code": addUserRoleResult.code, "message": addUserRoleResult.message };
+      }
+      //if everything is fine in kc, insert the user in hasura
+      const insertUserInHasuraResult = await connectToHasura().then(hasuraTokens => {
+        return insertUserInHasura(hasuraTokens.access_token, { id: insertedUserId, id_entreprise: req.payload.id_entreprise});
+      })
+      console.log(insertUserInHasuraResult);
+      if (typeof insertUserInHasuraResult.msg !== "undefined"){
+        return { "code": 500, "message": insertUserInHasuraResult.msg }
+      }
+      return { "code": 201, "message": ""}
+    });
+    return h.response(queryUserInsertionResult.message).code(queryUserInsertionResult.code);
   },
   remove: async (req, h) => {
     const bearerToken = req.headers.authorization.replace('Bearer ', '');

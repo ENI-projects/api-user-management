@@ -90,7 +90,20 @@ module.exports = [
     */
     method: 'POST',
     path: '/user',
-    handler: UserController.create
+    handler: UserController.create,
+    config: {
+      description: "protected endpoint",
+      cors: {
+        origin: ["*"]
+      },
+      auth: {
+        strategies: ["keycloak-jwt"],
+        access: {
+          scope: ["armadacar-frontend-app:adminentreprise", "entreprise-management-ui:entreprise-management-admin"]
+        }
+      },
+      validate: validators.PutUserPayload
+    }
   },
   {
     //delete user

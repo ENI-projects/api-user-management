@@ -5,6 +5,13 @@ const deleteUserById = `mutation deleteUserById($id: String!) {
     }
   }`;
 
+const insertUser = `mutation insertUser($id: String!, $id_entreprise: Int!) {
+    insert_armadacar_utilisateurs(objects: {id_entreprise: $id_entreprise, id: $id}) {
+      affected_rows
+    }
+  }`;
+
   module.exports = {
-    deleteUserById
+    deleteUserById,
+    insertUser
   }

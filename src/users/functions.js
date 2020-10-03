@@ -19,7 +19,19 @@ async function getUserInHasuraById(jwt, id) {
     queries.getUserById,
     { id }
   ))
-  return res.data ? res.data.armadacar_utilisateurs[0]: {"msg" : "Something went wrong while getting the users from the database"}
+  return res.data ? res.data.armadacar_utilisateurs[0]: {"msg" : `Something went wrong while getting the users from the database: ${res.errors[0].message}`}
+}
+
+async function insertUserInHasura(jwt, user) {
+  console.log(user);
+  const res = await fetchAsync(
+    jwt,
+    fetcher,
+    mutations.insertUser,
+    user
+  )
+  console.log(res);
+  return res.data ? res.data.insert_armadacar_utilisateurs: {"msg": `Something went wrong while inserting the user into the database: ${res.errors[0].message}` }
 }
 
 async function getUsersIdInCompany(jwt, id) {
@@ -29,7 +41,7 @@ async function getUsersIdInCompany(jwt, id) {
     queries.getUsersByIdEntreprise, 
     { id }
   ));
-  return res.data ? res.data.armadacar_utilisateurs:  {"msg": "Something went wrong while getting the users from the database"} ;
+  return res.data ? res.data.armadacar_utilisateurs:  {"msg": `Something went wrong while getting the users from the database: ${res.errors[0].message}`} ;
 }
 
 async function deleteUserInHasura(jwt, id){
@@ -39,7 +51,7 @@ async function deleteUserInHasura(jwt, id){
     mutations.deleteUserById,
     { id }
   );
-  return res.data ? res.data.delete_armadacar_utilisateurs: {"msg": "Something went wrong while deleting the user from the database"};
+  return res.data ? res.data.delete_armadacar_utilisateurs: {"msg": `Something went wrong while deleting the user from the database: ${res.errors[0].message}`};
 }
 
 function parseUserResponse(user) {
@@ -80,5 +92,6 @@ module.exports = {
   verifyAdminPrivilege,
   parseUserResponse,
   deleteUserInHasura,
-  getUserInHasuraById
+  getUserInHasuraById,
+  insertUserInHasura
 };

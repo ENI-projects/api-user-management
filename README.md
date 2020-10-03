@@ -57,6 +57,26 @@ __Payload :__ Payload should be this format :
 }
 ```
 
+### Add a user
+```
+POST /user
+```
+__Rights :__ This endpoint is only available to connected users having the "adminentreprise" role into the armadacar app and will only add users in the company of the caller. If a user is already in Keycloak with the same email, it will return a HTTP 409. It is also accessible by users in entreprise-management-admin role with no restriction on any user.
+
+__Payload :__ Payload should be this format :
+```json
+{
+  "email": "$email",
+  "first_name": "$last_name",
+  "last_name": "$last_name",
+  "id_entreprise": "$id_entreprise",
+  "adress": "$adress",
+  "ville": "$ville",
+  "code_postal": "$code_postal",
+  "phone": "$phone"
+}
+```
+
 ## Author
 
 👤 **Startfleet**
