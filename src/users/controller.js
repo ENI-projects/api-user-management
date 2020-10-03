@@ -1,6 +1,5 @@
 const { getAdminEntrepriseId, getUsersIdInCompany, parseUserResponse, decodeJwt, deleteUserInHasura, createUserInHasura } = require('./functions.js');
 const { connectToAdminCLI, connectToHasura, loadUserInfo, deleteUser, createUser, searchByEmail } = require('../keycloak/functions.js');
-const { createUser } = require('../graphql/mutations.js');
 
 module.exports = {
   list: async (req, h) => {
@@ -70,7 +69,7 @@ module.exports = {
   },
   create: (req, h) => {
     const bearerToken = req.headers.authorization.replace('Bearer ', '');
-    const id_entreprise = await getAdminEntrepriseId(bearerToken).then((res) => {
+    const id_entreprise = getAdminEntrepriseId(bearerToken).then((res) => {
       return res.data.armadacar_utilisateurs[0].id_entreprise;
     })
     const userData = {
@@ -79,7 +78,7 @@ module.exports = {
       firstName: req.payload.first_name,
       lastName: req.payload.last_name,
       attributes: [
-        { address : req.payload.adress },
+        { address : req.payload.address },
         { ville : req.payload.ville },
         { code_postal : req.payload.code_postal },
         { phone : req.payload.phone },  
@@ -89,37 +88,29 @@ module.exports = {
         {"hasura-keycloak-connector": "user"}          
       ]
     };    
-    if (typeof usersInCompany !== 'undefined'){
-      // check if the user is in the company of the caller
-      if (usersInCompany.filter(user => user.id == req.params.id).length > 0){
-        // create the user in keycloak
-        const queryResult = await connectToAdminCLI().then((kcTokens) => {
-          return createUser(kcTokens.access_token, userData);
-        });
-        //check the result of the delete function
-        if (typeof queryResult.code !== 'undefined'){
-          return h.response(queryResult.message).code(queryResult.code);
-        } else {
-          //if okay, get id User In Keycloak before of to create in hasura
-          const idUser = await connectToAdminCLI().then((kcTokens) => {
-            return searchByEmail(kcTokens.access_token, req.newUser.email)
-          }).then((promiseUser) => {
-            return Promise.all(promiseUser).then((userFound) => {
-              return userFound.id
-            });
-          });
-          //if okay, create in hasura
-          const isUserCreated = await connectToHasura().then((hasuraTokens) => {
-            return createUserInHasura(hasuraTokens.access_token, idUser, id_entreprise );
-          });
-          return isUserCreated.affected_rows ? h.response().code(204): h.response(isUserCreated.msg).code(500);
-        }
-      } else {
-        return h.response("Not Found").code(404);
-      }
+    // create the user in keycloak
+    const queryResult = connectToAdminCLI().then((kcTokens) => {
+      return createUser(kcTokens.access_token, userData);
+    });
+    //check the result of the delete function
+    if (typeof queryResult.code !== 'undefined'){
+      return h.response(queryResult.message).code(queryResult.code);
     } else {
-      return h.response(usersInCompany.message).code(usersInCompany.code)
-    }    
+      //if okay, get id User In Keycloak before of to create in hasura
+      const idUser = connectToAdminCLI().then((kcTokens) => {
+        return searchByEmail(kcTokens.access_token, req.payload.email)
+      }).then((promiseUser) => {
+        return Promise.all(promiseUser).then((userFound) => {
+          return userFound.id
+        });
+      });
+      //if okay, create in hasura
+      // const isUserCreated = connectToHasura().then((hasuraTokens) => {
+      //   return createUserInHasura(hasuraTokens.access_token, idUser, id_entreprise );
+      // });
+      // return isUserCreated.affected_rows ? h.response().code(204): h.response(isUserCreated.msg).code(500);
+      return idUser
+    }  
   },
   remove: async (req, h) => {
     const bearerToken = req.headers.authorization.replace('Bearer ', '');

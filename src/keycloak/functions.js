@@ -65,16 +65,18 @@ async function deleteUser(jwt, id) {
 }
 
 async function createUser(jwt, userData) {
-  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users`;
+  const url = `${process.env.KEYCLOAK_PROTOCOL}://${process.env.KEYCLOAK_DOMAIN}/auth/admin/realms/${process.env.KEYCLOAK_REALM}/users`;  
   const response = await fetch(
     url, {
       method: "POST",
       headers: {
-        "authorization": `Bearer ${jwt}`
+        "authorization": `Bearer ${jwt}`,
+        "Content-Type" : "application/json"
       },
       body: userData
     }
   )
+  console.log(response.status)
   if (response.status !== 204){
     return parseError({ message: response.status });
   }  
