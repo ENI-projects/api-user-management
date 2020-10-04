@@ -56,6 +56,7 @@ async function deleteUserInHasura(jwt, id){
 
 function parseUserResponse(user) {
   let parsedUser = {
+    id: user.id ? user.id : "",
     email: user.email ? user.email : "",
     first_name: user.firstName ? user.firstName : "",
     last_name: user.lastName ? user.lastName : "",
