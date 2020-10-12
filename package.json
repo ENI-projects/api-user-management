@@ -23,6 +23,6 @@
     "dotenv": "^8.2.0",
     "hapi-auth-keycloak": "^5.1.0",
     "jwt-decode": "^2.2.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.1"
   }
 }
